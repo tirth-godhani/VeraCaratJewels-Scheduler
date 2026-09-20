@@ -19,9 +19,20 @@ export function buildPinsForProduct(product, options = {}) {
   const cleanTitle = product.title ? product.title.trim() : 'Fine Handcrafted Jewelry';
   const truncatedTitle = cleanTitle.length > 70 ? cleanTitle.slice(0, 67) + '...' : cleanTitle;
 
-  // Curate hashtags from product tags + brand defaults
+  // Curate high-impact jewelry SEO hashtags
+  const jewelrySeoTags = [
+    '#VeraCaratJewels',
+    '#EngagementRing',
+    '#LabGrownDiamond',
+    '#UniqueEngagementRing',
+    '#BridalJewelry',
+    '#PromiseRing',
+    '#AnniversaryGift',
+    '#DiamondRing',
+    '#HandmadeJewelry'
+  ];
   const productTags = (product.tags || []).map(t => `#${t.replace(/[^a-zA-Z0-9]/g, '')}`);
-  const combinedTags = Array.from(new Set([...productTags, ...config.brand.defaultHashtags])).slice(0, 8);
+  const combinedTags = Array.from(new Set([...jewelrySeoTags, ...productTags])).slice(0, 8);
   const hashtagString = combinedTags.join(' ');
 
   // Base destination URL with tracking
@@ -31,16 +42,16 @@ export function buildPinsForProduct(product, options = {}) {
     destinationUrl = `${destinationUrl}${separator}utm_source=pinterest&utm_medium=social&utm_campaign=daily_scheduler`;
   }
 
-  // Pin description variations
+  // Pin description variations optimized for Pinterest search indexing (under 500 chars)
   const descriptions = [
-    `${product.description || cleanTitle}\n\n✨ Handcrafted with love by Vera Carat Jewels.\nShop this piece directly on Etsy: ${destinationUrl}\n\n${hashtagString}`,
-    `Discover ${cleanTitle}. Crafted for elegance and everyday luxury. Explore our full handcrafted collection.\n\n${hashtagString}`,
-    `Looking for the perfect jewelry gift? ${cleanTitle} brings timeless brilliance and exceptional quality.\n\nTap to view details on our Etsy store!\n\n${hashtagString}`,
-    `Close-up look at ${cleanTitle}. Hand-selected stones and fine craftsmanship.\n\nAvailable now at Vera Carat Jewels on Etsy.\n\n${hashtagString}`,
-    `Elevate your style with ${cleanTitle}. Fine artisanal jewelry by Vera Carat Jewels.\n\n${hashtagString}`
+    `✨ ${cleanTitle}\n\n💎 Certified Lab Grown Diamond\n💍 Handcrafted in 14K / 18K Solid Gold\n✨ Ethical stones with exceptional brilliance\n\n🎁 Perfect for engagements, proposals, promise rings & anniversaries.\n\nShop on Etsy: ${destinationUrl}\n\n${hashtagString}`,
+    `Looking for the dream engagement ring? ${cleanTitle} brings timeless elegance and radiant fire.\n\nHandcrafted with love by Vera Carat Jewels.\n\n✨ Free Worldwide Tracked Shipping\n✨ Custom Ring Sizes Available\n\nTap to explore on Etsy: ${destinationUrl}\n\n${hashtagString}`,
+    `A closer look at ${cleanTitle}. Featuring master stone setting, brilliant fire, and a comfort-fit band designed to last a lifetime.\n\nShop this artisanal fine jewelry piece on our Etsy store:\n${destinationUrl}\n\n${hashtagString}`,
+    `Say 'Yes' with ${cleanTitle}. An exquisite lab grown diamond ring crafted for moments you'll cherish forever.\n\nHandcrafted by Vera Carat Jewels on Etsy.\n\nOrder yours today: ${destinationUrl}\n\n${hashtagString}`,
+    `Elevate your style with ${cleanTitle}. Fine artisanal jewelry by Vera Carat Jewels with exceptional clarity, sparkle, and ethical luxury.\n\nExplore full details on Etsy: ${destinationUrl}\n\n${hashtagString}`
   ];
 
-  // Pin title variations
+  // Pin title variations tailored for Pinterest search algorithms (max 70 chars)
   const titleVariations = [
     `${truncatedTitle} | Vera Carat Jewels`,
     `Handcrafted ${cleanTitle.slice(0, 50)}`,

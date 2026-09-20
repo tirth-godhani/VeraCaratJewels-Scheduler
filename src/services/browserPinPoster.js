@@ -145,13 +145,31 @@ export class BrowserPinPoster {
             linkInp.dispatchEvent(new Event("change", { bubbles: true }));
           }
 
-          // Set Description
-          const descEl = document.querySelector("div[contenteditable='true']");
-          if (descEl) {
-            descEl.focus();
-            document.execCommand("selectAll", false, null);
-            document.execCommand("insertText", false, ${JSON.stringify(pin.description)});
-            descEl.dispatchEvent(new Event("input", { bubbles: true }));
+          // Set Description in Pinterest DraftJS editor
+          const descBox = document.querySelector('[data-test-id="storyboard-description-field-container"]') ||
+                          document.querySelector('[data-test-id="editor-with-mentions"]') ||
+                          document.getElementById('dweb-comment-editor-container');
+          const draftContent = descBox?.querySelector('.public-DraftEditor-content') ||
+                               document.querySelector('.public-DraftEditor-content') ||
+                               document.querySelector('div[contenteditable]');
+          if (draftContent) {
+            draftContent.setAttribute('contenteditable', 'true');
+            draftContent.focus();
+
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(draftContent);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            document.execCommand('delete', false, null);
+            document.execCommand('insertText', false, ${JSON.stringify(pin.description)});
+
+            draftContent.dispatchEvent(new Event('input', { bubbles: true }));
+            draftContent.dispatchEvent(new Event('change', { bubbles: true }));
+
+            const ph = descBox?.querySelector('.public-DraftEditorPlaceholder-root');
+            if (ph) ph.style.display = 'none';
           }
         })()`
       });
