@@ -110,12 +110,31 @@ app.get('/api/stores/:storeId/status', async (req, res) => {
   }
 });
 
-// Store products
+// Store products with live Pinterest publication status
 app.get('/api/stores/:storeId/products', async (req, res) => {
   try {
     const scheduler = new ProductScheduler({ storeId: req.params.storeId });
     const products = await scheduler.loadProducts();
-    res.json({ success: true, count: products.length, products });
+    const state = await scheduler.loadState();
+
+    const history = state.history || [];
+    const productsWithStatus = products.map((p, idx) => {
+      const liveRecord = history.find(h => h.productId === p.id && !h.dryRun && (h.successCount > 0 || h.pinsCreated > 0));
+      const testRecord = history.find(h => h.productId === p.id && h.dryRun);
+      return {
+        ...p,
+        isLive: Boolean(liveRecord),
+        liveDetails: liveRecord ? {
+          postedAt: liveRecord.timestamp,
+          pinsCreated: liveRecord.pinsCreated,
+          successCount: liveRecord.successCount
+        } : null,
+        isTested: Boolean(testRecord),
+        isCurrentQueueItem: idx === ((state.lastPostedProductIndex + 1) % (products.length || 1))
+      };
+    });
+
+    res.json({ success: true, count: productsWithStatus.length, products: productsWithStatus });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -104,6 +104,12 @@
         </div>
         <div class="catalog-filters">
           <input type="text" id="searchInput" placeholder="Search rings, carats, cuts..." class="search-box">
+          <select id="statusFilter" class="search-box filter-select" style="width: auto;">
+            <option value="all">All Products</option>
+            <option value="live">🟢 Live on Pinterest</option>
+            <option value="ready">⚪ Ready to Pin</option>
+            <option value="video">▶ With Video</option>
+          </select>
           <span class="item-count" id="itemCountDisplay">Showing 65 items</span>
         </div>
       </div>
@@ -127,6 +133,7 @@
       </div>
 
       <div class="modal-body">
+        <div id="modalAlertContainer"></div>
         <div class="pin-carousel" id="pinCarousel">
           <!-- 5 Pins will be injected here -->
         </div>

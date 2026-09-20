@@ -9,6 +9,7 @@ const storeSelector = document.getElementById('storeSelector');
 const btnAddStoreBtn = document.getElementById('btnAddStoreBtn');
 const productGrid = document.getElementById('productGrid');
 const searchInput = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
 const itemCountDisplay = document.getElementById('itemCountDisplay');
 const statTotalProducts = document.getElementById('statTotalProducts');
 const statTotalVideos = document.getElementById('statTotalVideos');
@@ -24,6 +25,7 @@ const btnSyncBrowser = document.getElementById('btnSyncBrowser');
 const pinModal = document.getElementById('pinModal');
 const modalCloseBtn = document.getElementById('modalCloseBtn');
 const modalProductTitle = document.getElementById('modalProductTitle');
+const modalAlertContainer = document.getElementById('modalAlertContainer');
 const pinCarousel = document.getElementById('pinCarousel');
 const modalPostBtn = document.getElementById('modalPostBtn');
 
@@ -59,7 +61,6 @@ async function loadStores() {
       // If activeStoreId not in stores, default to first
       if (!allStores.some(s => s.id === activeStoreId)) {
         activeStoreId = allStores[0].id;
-        storeSelector.value = activeStoreId;
       }
 
       await loadStoreData(activeStoreId);
@@ -75,9 +76,12 @@ storeSelector.addEventListener('change', async (e) => {
   await loadStoreData(activeStoreId);
 });
 
-// Load Store-Specific Data
+// Load data for active store
 async function loadStoreData(storeId) {
-  await Promise.all([loadStatus(storeId), loadProducts(storeId)]);
+  await Promise.all([
+    loadStatus(storeId),
+    loadProducts(storeId)
+  ]);
 }
 
 // Fetch Status
@@ -105,7 +109,7 @@ async function loadProducts(storeId) {
     if (data.success) {
       allProducts = data.products || [];
       renderStats();
-      renderProducts(allProducts);
+      applyFilters();
     }
   } catch (err) {
     console.error('Failed to load products:', err);
@@ -127,7 +131,7 @@ function renderProducts(products) {
   itemCountDisplay.innerText = `Showing ${products.length} of ${allProducts.length} items`;
   if (products.length === 0) {
     productGrid.innerHTML = `<div style="grid-column: 1/-1; padding: 60px; text-align: center; color: var(--text-muted);">
-      No products found in this store yet. Click "Sync Etsy" to import from Etsy!
+      No matching products found in this store.
     </div>`;
     return;
   }
@@ -137,6 +141,17 @@ function renderProducts(products) {
     const hasVid = Boolean(p.video && p.video.url);
     const imgCount = p.images ? p.images.length : 0;
 
+    // Status pill
+    let statusPillHtml = '';
+    if (p.isLive) {
+      const count = p.liveDetails?.successCount || 5;
+      statusPillHtml = `<span class="status-pill live">🟢 LIVE ON PINTEREST (${count}/5)</span>`;
+    } else if (p.isTested) {
+      statusPillHtml = `<span class="status-pill tested">🟡 TESTED (DRY-RUN)</span>`;
+    } else {
+      statusPillHtml = `<span class="status-pill ready">⚪ READY TO PIN</span>`;
+    }
+
     return `
       <div class="product-card" onclick="openPinModal('${p.id}')">
         <div class="card-img-wrapper">
@@ -145,6 +160,7 @@ function renderProducts(products) {
             ${hasVid ? `<span class="video-badge">▶ VIDEO</span>` : `<span></span>`}
             <span class="photo-count-badge">📷 ${imgCount} Photos</span>
           </div>
+          ${statusPillHtml}
         </div>
         <div class="card-content">
           <h4 class="card-title" title="${p.title}">${p.title}</h4>
@@ -158,15 +174,29 @@ function renderProducts(products) {
   }).join('');
 }
 
-// Search Filter
-searchInput.addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase().trim();
-  const filtered = allProducts.filter(p => 
-    p.title.toLowerCase().includes(query) || 
-    (p.tags && p.tags.some(t => t.toLowerCase().includes(query)))
-  );
+// Search & Status Filtering
+function applyFilters() {
+  const query = (searchInput?.value || '').toLowerCase().trim();
+  const filterType = statusFilter?.value || 'all';
+
+  const filtered = allProducts.filter(p => {
+    const matchesQuery = !query || 
+      p.title.toLowerCase().includes(query) || 
+      (p.tags && p.tags.some(t => t.toLowerCase().includes(query)));
+    
+    if (!matchesQuery) return false;
+
+    if (filterType === 'live') return p.isLive;
+    if (filterType === 'ready') return !p.isLive;
+    if (filterType === 'video') return Boolean(p.video && p.video.url);
+    return true;
+  });
+
   renderProducts(filtered);
-});
+}
+
+searchInput.addEventListener('input', applyFilters);
+if (statusFilter) statusFilter.addEventListener('change', applyFilters);
 
 // Modal Logic: 5-Pin Preview
 window.openPinModal = async function(productId) {
@@ -174,6 +204,31 @@ window.openPinModal = async function(productId) {
   if (!selectedProduct) return;
 
   modalProductTitle.innerText = selectedProduct.title;
+
+  // Render Duplicate Warning if pins already live
+  if (modalAlertContainer) {
+    if (selectedProduct.isLive) {
+      const postedDate = selectedProduct.liveDetails?.postedAt 
+        ? new Date(selectedProduct.liveDetails.postedAt).toLocaleString() 
+        : 'Previously';
+      const count = selectedProduct.liveDetails?.successCount || 5;
+      modalAlertContainer.innerHTML = `
+        <div class="duplicate-warning-banner">
+          <div class="duplicate-warning-icon">⚠️</div>
+          <div>
+            <div class="duplicate-warning-title">Pins Already Live on Pinterest!</div>
+            <p class="duplicate-warning-text">
+              This ring already has <strong>${count} pins live</strong> on Pinterest (published on ${postedDate}).
+              Publishing again will create duplicate pins on your board.
+            </p>
+          </div>
+        </div>
+      `;
+    } else {
+      modalAlertContainer.innerHTML = '';
+    }
+  }
+
   pinCarousel.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center;">Generating 5 pins for this product...</div>`;
   pinModal.classList.add('open');
 
@@ -223,6 +278,12 @@ pinModal.addEventListener('click', (e) => { if (e.target === pinModal) pinModal.
 // Publish a single pin from the modal
 window.publishSinglePin = async function(pinNumber, btnEl) {
   if (!selectedProduct) return;
+
+  if (selectedProduct.isLive) {
+    const confirmed = confirm(`⚠️ Notice: This ring already has pins live on Pinterest!\n\nAre you sure you want to publish Pin #${pinNumber} again?`);
+    if (!confirmed) return;
+  }
+
   const originalText = btnEl.innerText;
   btnEl.disabled = true;
   btnEl.innerText = 'Publishing...';
@@ -235,7 +296,7 @@ window.publishSinglePin = async function(pinNumber, btnEl) {
     const data = await res.json();
     if (data.success) {
       showToast(`Success! Pin #${pinNumber} published for "${selectedProduct.title.slice(0, 25)}..."`);
-      await loadStatus(activeStoreId);
+      await loadStoreData(activeStoreId);
     } else {
       showToast(`Error: ${data.error || 'Failed to publish pin'}`);
     }
@@ -259,7 +320,7 @@ btnPostNext.addEventListener('click', async () => {
     const data = await res.json();
     if (data.success) {
       showToast(`Success! 5 pins posted for "${data.result.productTitle.slice(0, 30)}..."`);
-      await loadStatus(activeStoreId);
+      await loadStoreData(activeStoreId);
     } else {
       showToast(`Error: ${data.error || 'Failed to post'}`);
     }
@@ -273,6 +334,12 @@ btnPostNext.addEventListener('click', async () => {
 
 modalPostBtn.addEventListener('click', async () => {
   if (!selectedProduct) return;
+
+  if (selectedProduct.isLive) {
+    const confirmed = confirm(`⚠️ Warning: This ring is ALREADY LIVE on Pinterest!\n\nAre you sure you want to publish again and create duplicate pins on your board?`);
+    if (!confirmed) return;
+  }
+
   modalPostBtn.disabled = true;
   modalPostBtn.innerText = 'Publishing Selected Ring...';
   try {
@@ -284,7 +351,7 @@ modalPostBtn.addEventListener('click', async () => {
     if (data.success) {
       showToast(`Success! Published pins for "${selectedProduct.title.slice(0, 30)}..."`);
       pinModal.classList.remove('open');
-      await loadStatus(activeStoreId);
+      await loadStoreData(activeStoreId);
     } else {
       showToast(`Error: ${data.error || 'Failed to post'}`);
     }

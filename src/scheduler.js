@@ -69,7 +69,23 @@ export class ProductScheduler {
     }
 
     const state = await this.loadState();
-    const nextIndex = (state.lastPostedProductIndex + 1) % products.length;
+    
+    // Intelligent Duplicate Prevention: skip items already published live to Pinterest
+    let nextIndex = (state.lastPostedProductIndex + 1) % products.length;
+    const liveHistory = (state.history || []).filter(h => !h.dryRun && (h.successCount > 0 || h.pinsCreated > 0));
+    const publishedIds = new Set(liveHistory.map(h => h.productId));
+
+    const unpostedCount = products.filter(p => !publishedIds.has(p.id)).length;
+    if (unpostedCount > 0 && publishedIds.has(products[nextIndex].id)) {
+      for (let i = 0; i < products.length; i++) {
+        const candidate = (nextIndex + i) % products.length;
+        if (!publishedIds.has(products[candidate].id)) {
+          nextIndex = candidate;
+          break;
+        }
+      }
+    }
+
     const product = products[nextIndex];
 
     logger.info(`=======================================================`);

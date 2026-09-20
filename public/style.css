@@ -443,6 +443,72 @@ body {
   border-radius: 4px;
 }
 
+.status-pill {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.status-pill.live {
+  background: rgba(16, 185, 129, 0.85);
+  color: #ffffff;
+  border: 1px solid rgba(110, 231, 183, 0.6);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.status-pill.tested {
+  background: rgba(245, 158, 11, 0.85);
+  color: #ffffff;
+  border: 1px solid rgba(252, 211, 77, 0.5);
+}
+
+.status-pill.ready {
+  background: rgba(30, 41, 59, 0.85);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Modal Duplicate Warning Banner */
+.duplicate-warning-banner {
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.duplicate-warning-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.duplicate-warning-title {
+  color: #fef08a;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.duplicate-warning-text {
+  color: #cbd5e1;
+  font-size: 12.5px;
+  line-height: 1.4;
+  margin: 0;
+}
+
 .card-content {
   padding: 14px;
   display: flex;
