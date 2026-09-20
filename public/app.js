@@ -1,8 +1,12 @@
+let allStores = [];
+let activeStoreId = 'veracaratjewel';
 let allProducts = [];
 let currentStatus = null;
 let selectedProduct = null;
 
 // DOM Elements
+const storeSelector = document.getElementById('storeSelector');
+const btnAddStoreBtn = document.getElementById('btnAddStoreBtn');
 const productGrid = document.getElementById('productGrid');
 const searchInput = document.getElementById('searchInput');
 const itemCountDisplay = document.getElementById('itemCountDisplay');
@@ -11,16 +15,23 @@ const statTotalVideos = document.getElementById('statTotalVideos');
 const statTotalImages = document.getElementById('statTotalImages');
 const nextProductTitle = document.getElementById('nextProductTitle');
 const totalPostsCount = document.getElementById('totalPostsCount');
+const scheduleTiming = document.getElementById('scheduleTiming');
 const modeBadge = document.getElementById('modeBadge');
 const btnPostNext = document.getElementById('btnPostNext');
 const btnSyncBrowser = document.getElementById('btnSyncBrowser');
 
-// Modal Elements
+// Pin Modal Elements
 const pinModal = document.getElementById('pinModal');
 const modalCloseBtn = document.getElementById('modalCloseBtn');
 const modalProductTitle = document.getElementById('modalProductTitle');
 const pinCarousel = document.getElementById('pinCarousel');
 const modalPostBtn = document.getElementById('modalPostBtn');
+
+// Add Store Modal Elements
+const addStoreModal = document.getElementById('addStoreModal');
+const closeAddStoreBtn = document.getElementById('closeAddStoreBtn');
+const addStoreForm = document.getElementById('addStoreForm');
+
 const toastEl = document.getElementById('toast');
 
 // Show toast
@@ -30,15 +41,55 @@ function showToast(msg) {
   setTimeout(() => toastEl.classList.remove('show'), 3500);
 }
 
-// Fetch Status
-async function loadStatus() {
+// 1. Load Stores List
+async function loadStores() {
   try {
-    const res = await fetch('/api/status');
+    const res = await fetch('/api/stores');
+    const data = await res.json();
+    if (data.success && data.stores.length > 0) {
+      allStores = data.stores;
+      
+      // Populate selector
+      storeSelector.innerHTML = allStores.map(s => `
+        <option value="${s.id}" ${s.id === activeStoreId ? 'selected' : ''}>
+          ${s.name} (${s.productCount || 0} items)
+        </option>
+      `).join('');
+
+      // If activeStoreId not in stores, default to first
+      if (!allStores.some(s => s.id === activeStoreId)) {
+        activeStoreId = allStores[0].id;
+        storeSelector.value = activeStoreId;
+      }
+
+      await loadStoreData(activeStoreId);
+    }
+  } catch (err) {
+    console.error('Failed to load stores:', err);
+  }
+}
+
+// Store Selector Change
+storeSelector.addEventListener('change', async (e) => {
+  activeStoreId = e.target.value;
+  await loadStoreData(activeStoreId);
+});
+
+// Load Store-Specific Data
+async function loadStoreData(storeId) {
+  await Promise.all([loadStatus(storeId), loadProducts(storeId)]);
+}
+
+// Fetch Status
+async function loadStatus(storeId) {
+  try {
+    const res = await fetch(`/api/stores/${storeId}/status`);
     const data = await res.json();
     if (data.success) {
       currentStatus = data;
-      nextProductTitle.innerText = data.nextProduct ? `#${data.nextIndex + 1} - ${data.nextProduct.title}` : 'None';
+      nextProductTitle.innerText = data.nextProduct ? `#${data.nextIndex + 1} - ${data.nextProduct.title}` : 'Queue empty';
       totalPostsCount.innerText = data.totalPostedCount || 0;
+      scheduleTiming.innerText = `${data.cron || 'Daily'} (${data.timezone || 'Asia/Kolkata'})`;
       modeBadge.innerText = data.dryRun ? 'Dry Run Mode' : 'Live Mode';
     }
   } catch (err) {
@@ -47,9 +98,9 @@ async function loadStatus() {
 }
 
 // Fetch Products
-async function loadProducts() {
+async function loadProducts(storeId) {
   try {
-    const res = await fetch('/api/products');
+    const res = await fetch(`/api/stores/${storeId}/products`);
     const data = await res.json();
     if (data.success) {
       allProducts = data.products || [];
@@ -75,11 +126,13 @@ function renderStats() {
 function renderProducts(products) {
   itemCountDisplay.innerText = `Showing ${products.length} of ${allProducts.length} items`;
   if (products.length === 0) {
-    productGrid.innerHTML = `<div style="grid-column: 1/-1; padding: 60px; text-align: center; color: var(--text-muted);">No products match your search.</div>`;
+    productGrid.innerHTML = `<div style="grid-column: 1/-1; padding: 60px; text-align: center; color: var(--text-muted);">
+      No products found in this store yet. Click "Sync Etsy" to import from Etsy!
+    </div>`;
     return;
   }
 
-  productGrid.innerHTML = products.map((p, idx) => {
+  productGrid.innerHTML = products.map((p) => {
     const thumb = (p.images && p.images[0]) || '';
     const hasVid = Boolean(p.video && p.video.url);
     const imgCount = p.images ? p.images.length : 0;
@@ -115,7 +168,7 @@ searchInput.addEventListener('input', (e) => {
   renderProducts(filtered);
 });
 
-// Modal Logic
+// Modal Logic: 5-Pin Preview
 window.openPinModal = async function(productId) {
   selectedProduct = allProducts.find(p => p.id === productId);
   if (!selectedProduct) return;
@@ -125,7 +178,7 @@ window.openPinModal = async function(productId) {
   pinModal.classList.add('open');
 
   try {
-    const res = await fetch(`/api/products/${productId}/pins`);
+    const res = await fetch(`/api/stores/${activeStoreId}/products/${productId}/pins`);
     const data = await res.json();
     if (data.success) {
       renderPins(data.pins);
@@ -161,26 +214,22 @@ function renderPins(pins) {
   }).join('');
 }
 
-modalCloseBtn.addEventListener('click', () => {
-  pinModal.classList.remove('open');
-});
-
-pinModal.addEventListener('click', (e) => {
-  if (e.target === pinModal) {
-    pinModal.classList.remove('open');
-  }
-});
+modalCloseBtn.addEventListener('click', () => pinModal.classList.remove('open'));
+pinModal.addEventListener('click', (e) => { if (e.target === pinModal) pinModal.classList.remove('open'); });
 
 // Post Next Button
 btnPostNext.addEventListener('click', async () => {
   btnPostNext.disabled = true;
   btnPostNext.innerText = 'Posting 5 Pins...';
   try {
-    const res = await fetch('/api/post-next', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const res = await fetch(`/api/stores/${activeStoreId}/post-next`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
     const data = await res.json();
     if (data.success) {
-      showToast(`Success! Published 5 pins for "${data.result.productTitle.slice(0, 30)}..."`);
-      await loadStatus();
+      showToast(`Success! 5 pins posted for "${data.result.productTitle.slice(0, 30)}..."`);
+      await loadStatus(activeStoreId);
     } else {
       showToast(`Error: ${data.error || 'Failed to post'}`);
     }
@@ -188,7 +237,7 @@ btnPostNext.addEventListener('click', async () => {
     showToast(`Post failed: ${err.message}`);
   } finally {
     btnPostNext.disabled = false;
-    btnPostNext.innerText = '⚡ Post Next Product Now';
+    btnPostNext.innerText = '⚡ Post Next';
   }
 });
 
@@ -196,12 +245,15 @@ modalPostBtn.addEventListener('click', async () => {
   modalPostBtn.disabled = true;
   modalPostBtn.innerText = 'Publishing...';
   try {
-    const res = await fetch('/api/post-next', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const res = await fetch(`/api/stores/${activeStoreId}/post-next`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
     const data = await res.json();
     if (data.success) {
       showToast(`Success! 5 Pins published for product.`);
       pinModal.classList.remove('open');
-      await loadStatus();
+      await loadStatus(activeStoreId);
     }
   } catch (err) {
     showToast(`Error: ${err.message}`);
@@ -216,20 +268,70 @@ btnSyncBrowser.addEventListener('click', async () => {
   btnSyncBrowser.disabled = true;
   btnSyncBrowser.innerText = 'Syncing...';
   try {
-    const res = await fetch('/api/sync-browser', { method: 'POST' });
+    const res = await fetch(`/api/stores/${activeStoreId}/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ useBrowser: true })
+    });
     const data = await res.json();
-    showToast('Catalog sync started in background from Etsy Chrome tab!');
+    showToast(`Sync started for active store!`);
   } catch (err) {
     showToast(`Sync error: ${err.message}`);
   } finally {
     setTimeout(() => {
       btnSyncBrowser.disabled = false;
-      btnSyncBrowser.innerText = '🔄 Sync Etsy Catalog';
-      loadProducts();
+      btnSyncBrowser.innerText = '🔄 Sync Etsy';
+      loadProducts(activeStoreId);
     }, 3000);
   }
 });
 
-// Init
-loadStatus();
-loadProducts();
+// Add Store Modal Handling
+btnAddStoreBtn.addEventListener('click', () => {
+  addStoreModal.classList.add('open');
+});
+
+closeAddStoreBtn.addEventListener('click', () => {
+  addStoreModal.classList.remove('open');
+});
+
+addStoreModal.addEventListener('click', (e) => {
+  if (e.target === addStoreModal) addStoreModal.classList.remove('open');
+});
+
+addStoreForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    name: document.getElementById('newStoreName').value.trim(),
+    etsyShopId: document.getElementById('newEtsyShopId').value.trim(),
+    pinterestProfileUrl: document.getElementById('newPinterestProfileUrl').value.trim(),
+    pinterestBoardName: document.getElementById('newPinterestBoardName').value.trim(),
+    pinterestBoardId: document.getElementById('newPinterestBoardId').value.trim(),
+    pinterestAccessToken: document.getElementById('newPinterestToken').value.trim(),
+    pinsPerProduct: parseInt(document.getElementById('newPinsCount').value, 10),
+    cronSchedule: document.getElementById('newCron').value.trim()
+  };
+
+  try {
+    const res = await fetch('/api/stores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Store "${data.store.name}" registered successfully!`);
+      addStoreModal.classList.remove('open');
+      addStoreForm.reset();
+      activeStoreId = data.store.id;
+      await loadStores();
+    } else {
+      showToast(`Error: ${data.error || 'Failed to create store'}`);
+    }
+  } catch (err) {
+    showToast(`Error: ${err.message}`);
+  }
+});
+
+// Initialize on page load
+loadStores();

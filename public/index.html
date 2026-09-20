@@ -22,12 +22,20 @@
         </div>
       </div>
       <div class="header-actions">
+        <!-- Store Switcher Dropdown -->
+        <div class="store-switcher-box">
+          <label class="store-label">Active Store:</label>
+          <select id="storeSelector" class="store-select"></select>
+        </div>
+        <button class="btn btn-secondary" id="btnAddStoreBtn" title="Register another Etsy / Pinterest store">
+          ➕ Add Store
+        </button>
         <div class="mode-badge" id="modeBadge">Dry Run Mode</div>
         <button class="btn btn-secondary" id="btnSyncBrowser" title="Sync from open Etsy Chrome tab">
-          🔄 Sync Etsy Catalog
+          🔄 Sync Etsy
         </button>
         <button class="btn btn-primary" id="btnPostNext">
-          ⚡ Post Next Product Now
+          ⚡ Post Next
         </button>
       </div>
     </header>
@@ -128,6 +136,71 @@
         <span class="footer-tip">💡 All pins include direct backlink to the Etsy listing with analytics tracking.</span>
         <button class="btn btn-primary" id="modalPostBtn">🚀 Publish These 5 Pins</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Add New Store Modal -->
+  <div class="modal-overlay" id="addStoreModal">
+    <div class="modal-card modal-small">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">Multi-Store Platform</span>
+          <h3 class="modal-title">Connect New Etsy & Pinterest Store</h3>
+        </div>
+        <button class="modal-close" id="closeAddStoreBtn">&times;</button>
+      </div>
+
+      <form id="addStoreForm">
+        <div class="modal-body form-body">
+          <div class="form-group">
+            <label class="form-label">Store Brand Name *</label>
+            <input type="text" id="newStoreName" class="form-input" placeholder="e.g. Artisan Leather Goods" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Etsy Shop ID / Shop Name *</label>
+            <input type="text" id="newEtsyShopId" class="form-input" placeholder="e.g. ArtisanLeatherShop" required>
+            <span class="form-hint">The shop name as it appears in the Etsy shop URL.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pinterest Profile URL</label>
+            <input type="url" id="newPinterestProfileUrl" class="form-input" placeholder="https://au.pinterest.com/their_profile/">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pinterest Destination Board Name *</label>
+            <input type="text" id="newPinterestBoardName" class="form-input" placeholder="e.g. Handmade Bags" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pinterest Board ID (Optional)</label>
+            <input type="text" id="newPinterestBoardId" class="form-input" placeholder="Numeric ID (if using API)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pinterest Access Token (Optional)</label>
+            <input type="password" id="newPinterestToken" class="form-input" placeholder="pina_...">
+            <span class="form-hint">Leave blank to use Simulation / Browser mode.</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Daily Pins</label>
+              <input type="number" id="newPinsCount" class="form-input" value="5" min="1" max="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Daily Posting Time</label>
+              <input type="text" id="newCron" class="form-input" value="0 10 * * *" placeholder="0 10 * * *">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <span class="footer-tip">🔒 Store credentials & catalogs remain 100% isolated.</span>
+          <button type="submit" class="btn btn-primary">Create Store & Connect</button>
+        </div>
+      </form>
     </div>
   </div>
 

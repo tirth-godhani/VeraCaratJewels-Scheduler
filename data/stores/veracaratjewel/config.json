@@ -1,0 +1,29 @@
+{
+  "id": "veracaratjewel",
+  "name": "Vera Carat Jewels",
+  "etsyShopId": "VeraCaratJewel",
+  "etsyApiKey": "",
+  "etsyAccessToken": "",
+  "pinterestAccessToken": "",
+  "pinterestBoardId": "",
+  "pinterestBoardName": "Engagement Ring",
+  "pinterestProfileUrl": "https://au.pinterest.com/veracaratjewels/",
+  "cronSchedule": "0 10 * * *",
+  "timezone": "Asia/Kolkata",
+  "pinsPerProduct": 5,
+  "pinIntervalMinutes": 30,
+  "dryRun": true,
+  "defaultHashtags": [
+    "#VeraCaratJewels",
+    "#FineJewelry",
+    "#HandmadeJewelry",
+    "#DiamondJewelry",
+    "#GoldJewelry",
+    "#EtsyJewelry",
+    "#JewelryInspiration",
+    "#LuxuryJewelry",
+    "#EngagementRing",
+    "#GiftForHer"
+  ],
+  "createdAt": "2026-09-20T12:30:43.605Z"
+}
