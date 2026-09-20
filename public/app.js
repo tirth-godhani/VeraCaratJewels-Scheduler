@@ -208,6 +208,9 @@ function renderPins(pins) {
         <div class="pin-info-box">
           <div class="pin-title-text" title="${pin.title}">${pin.title}</div>
           <div class="pin-desc-text" title="${pin.description}">${pin.description}</div>
+          <button class="btn-preview" style="margin-top: 8px; width: 100%; text-align: center;" onclick="publishSinglePin('${pin.pinNumber}', this)">
+            Publish Pin #${pin.pinNumber} Only
+          </button>
         </div>
       </div>
     `;
@@ -216,6 +219,33 @@ function renderPins(pins) {
 
 modalCloseBtn.addEventListener('click', () => pinModal.classList.remove('open'));
 pinModal.addEventListener('click', (e) => { if (e.target === pinModal) pinModal.classList.remove('open'); });
+
+// Publish a single pin from the modal
+window.publishSinglePin = async function(pinNumber, btnEl) {
+  if (!selectedProduct) return;
+  const originalText = btnEl.innerText;
+  btnEl.disabled = true;
+  btnEl.innerText = 'Publishing...';
+  try {
+    const res = await fetch(`/api/stores/${activeStoreId}/products/${selectedProduct.id}/post`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pinNumber })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Success! Pin #${pinNumber} published for "${selectedProduct.title.slice(0, 25)}..."`);
+      await loadStatus(activeStoreId);
+    } else {
+      showToast(`Error: ${data.error || 'Failed to publish pin'}`);
+    }
+  } catch (err) {
+    showToast(`Error: ${err.message}`);
+  } finally {
+    btnEl.disabled = false;
+    btnEl.innerText = originalText;
+  }
+};
 
 // Post Next Button
 btnPostNext.addEventListener('click', async () => {
@@ -242,18 +272,21 @@ btnPostNext.addEventListener('click', async () => {
 });
 
 modalPostBtn.addEventListener('click', async () => {
+  if (!selectedProduct) return;
   modalPostBtn.disabled = true;
-  modalPostBtn.innerText = 'Publishing...';
+  modalPostBtn.innerText = 'Publishing Selected Ring...';
   try {
-    const res = await fetch(`/api/stores/${activeStoreId}/post-next`, {
+    const res = await fetch(`/api/stores/${activeStoreId}/products/${selectedProduct.id}/post`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
     const data = await res.json();
     if (data.success) {
-      showToast(`Success! 5 Pins published for product.`);
+      showToast(`Success! Published pins for "${selectedProduct.title.slice(0, 30)}..."`);
       pinModal.classList.remove('open');
       await loadStatus(activeStoreId);
+    } else {
+      showToast(`Error: ${data.error || 'Failed to post'}`);
     }
   } catch (err) {
     showToast(`Error: ${err.message}`);

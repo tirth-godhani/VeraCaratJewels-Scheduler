@@ -143,13 +143,26 @@ app.get('/api/stores/:storeId/products/:productId/pins', async (req, res) => {
   }
 });
 
-// Post next product for store
+// Post next product for store (sequential queue)
 app.post('/api/stores/:storeId/post-next', async (req, res) => {
   try {
     const { storeId } = req.params;
     const dryRun = req.body.dryRun;
     const scheduler = new ProductScheduler({ storeId, dryRun });
     const result = await scheduler.postNextProduct(true);
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Post a SPECIFIC product selected by the user
+app.post('/api/stores/:storeId/products/:productId/post', async (req, res) => {
+  try {
+    const { storeId, productId } = req.params;
+    const { dryRun, pinNumber } = req.body;
+    const scheduler = new ProductScheduler({ storeId, dryRun });
+    const result = await scheduler.postProductById(productId, true, pinNumber);
     res.json({ success: true, result });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
