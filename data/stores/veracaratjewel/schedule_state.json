@@ -1,8 +1,28 @@
 {
-  "lastPostedProductIndex": 1,
-  "lastPostedAt": "2026-09-20T12:30:57.914Z",
-  "totalPostedCount": 2,
+  "lastPostedProductIndex": 3,
+  "lastPostedAt": "2026-09-20T12:41:59.618Z",
+  "totalPostedCount": 4,
   "history": [
+    {
+      "timestamp": "2026-09-20T12:41:59.618Z",
+      "productIndex": 3,
+      "productId": "etsy_4567426364",
+      "productTitle": "1 Carat Lab Grown Diamond Round Cut Engagement Ring Double Halo Pave Ring Bridal Jewelry Wedding Ring Promise Ring Anniversary Gift For Her",
+      "pinsCreated": 5,
+      "successCount": 5,
+      "manual": true,
+      "dryRun": true
+    },
+    {
+      "timestamp": "2026-09-20T12:35:27.777Z",
+      "productIndex": 2,
+      "productId": "etsy_4570068697",
+      "productTitle": "0.60 Ct Round Lab Grown Diamond Engagement Ring, Double Cushion Halo, Pavé Band, Bridal Ring, Anniversary Gift, Promise Ring, Wedding Ring",
+      "pinsCreated": 5,
+      "successCount": 5,
+      "manual": true,
+      "dryRun": true
+    },
     {
       "timestamp": "2026-09-20T12:30:57.914Z",
       "productIndex": 1,

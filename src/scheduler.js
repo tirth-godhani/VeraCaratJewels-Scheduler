@@ -85,14 +85,31 @@ export class ProductScheduler {
       boardId: store.pinterestBoardId
     });
 
-    const pinterestService = new PinterestService({
-      accessToken: store.pinterestAccessToken,
-      boardId: store.pinterestBoardId,
-      dryRun: isDryRun
-    });
-
     // Publish to Pinterest
-    const pinResults = await pinterestService.publishProductPins(pins, store.pinIntervalMinutes);
+    let pinResults;
+    if (!isDryRun && !store.pinterestAccessToken) {
+      logger.info(`[${store.name}] Using Live Browser Poster to publish pins directly to Pinterest...`);
+      const { BrowserPinPoster } = await import('./services/browserPinPoster.js');
+      const browserPoster = new BrowserPinPoster();
+      pinResults = [];
+      for (const pin of pins) {
+        try {
+          const res = await browserPoster.publishPin(pin);
+          pinResults.push({ pinNumber: pin.pinNumber, success: true, result: res });
+          await new Promise(r => setTimeout(r, 4000));
+        } catch (err) {
+          logger.error(`Failed to publish pin #${pin.pinNumber}: ${err.message}`);
+          pinResults.push({ pinNumber: pin.pinNumber, success: false, error: err.message });
+        }
+      }
+    } else {
+      const pinterestService = new PinterestService({
+        accessToken: store.pinterestAccessToken,
+        boardId: store.pinterestBoardId,
+        dryRun: isDryRun
+      });
+      pinResults = await pinterestService.publishProductPins(pins, store.pinIntervalMinutes);
+    }
 
     const successCount = pinResults.filter(r => r.success).length;
     logger.info(`[${store.name}] Published ${successCount}/${pins.length} pins successfully.`);

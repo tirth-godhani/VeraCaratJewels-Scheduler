@@ -12,7 +12,7 @@
   "timezone": "Asia/Kolkata",
   "pinsPerProduct": 5,
   "pinIntervalMinutes": 30,
-  "dryRun": true,
+  "dryRun": false,
   "defaultHashtags": [
     "#VeraCaratJewels",
     "#FineJewelry",
