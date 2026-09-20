@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vera Carat Jewels — Etsy to Pinterest Daily Pin Scheduler</title>
+  <meta name="description" content="Automated daily Etsy product catalog distribution and 5-pin Pinterest generator for Vera Carat Jewels">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Top Navigation Header -->
+    <header class="top-header">
+      <div class="brand-container">
+        <div class="brand-logo-gem">💎</div>
+        <div>
+          <h1 class="brand-title">VERA CARAT JEWELS</h1>
+          <p class="brand-subtitle">Etsy to Pinterest Daily Marketing & Pin Scheduler</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="mode-badge" id="modeBadge">Dry Run Mode</div>
+        <button class="btn btn-secondary" id="btnSyncBrowser" title="Sync from open Etsy Chrome tab">
+          🔄 Sync Etsy Catalog
+        </button>
+        <button class="btn btn-primary" id="btnPostNext">
+          ⚡ Post Next Product Now
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero Stats & Control Panel -->
+    <section class="dashboard-grid">
+      <!-- Stats Card -->
+      <div class="card stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Catalog Statistics</span>
+          <span class="pulse-indicator"></span>
+        </div>
+        <div class="stat-numbers">
+          <div class="stat-box">
+            <span class="num" id="statTotalProducts">65</span>
+            <span class="label">Products</span>
+          </div>
+          <div class="stat-box">
+            <span class="num" id="statTotalVideos">64</span>
+            <span class="label">Videos</span>
+          </div>
+          <div class="stat-box">
+            <span class="num" id="statTotalImages">975</span>
+            <span class="label">High-Res Photos</span>
+          </div>
+          <div class="stat-box">
+            <span class="num highlight">5</span>
+            <span class="label">Pins / Product</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule Status Card -->
+      <div class="card schedule-card">
+        <div class="stat-header">
+          <span class="stat-label">Daily Queue Status</span>
+          <span class="badge" id="queueBadge">Ready</span>
+        </div>
+        <div class="queue-info">
+          <div class="queue-row">
+            <span class="q-title">Next Scheduled Item:</span>
+            <span class="q-value" id="nextProductTitle">Loading...</span>
+          </div>
+          <div class="queue-row">
+            <span class="q-title">Scheduled Timing:</span>
+            <span class="q-value" id="scheduleTiming">Every day at 10:00 AM (Asia/Kolkata)</span>
+          </div>
+          <div class="queue-row">
+            <span class="q-title">Destination Board:</span>
+            <span class="q-value"><a href="https://au.pinterest.com/veracaratjewels/engagement-ring/" target="_blank" class="link">Engagement Ring</a></span>
+          </div>
+          <div class="queue-row">
+            <span class="q-title">Total Posts Made:</span>
+            <span class="q-value" id="totalPostsCount">0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Catalog View Section -->
+    <section class="catalog-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Etsy Jewelry Catalog</h2>
+          <p class="section-desc">Click any product to preview its 5 generated Pinterest pins (1 Video + 4 Image variations)</p>
+        </div>
+        <div class="catalog-filters">
+          <input type="text" id="searchInput" placeholder="Search rings, carats, cuts..." class="search-box">
+          <span class="item-count" id="itemCountDisplay">Showing 65 items</span>
+        </div>
+      </div>
+
+      <!-- Product Cards Grid -->
+      <div class="product-grid" id="productGrid">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+    </section>
+  </div>
+
+  <!-- 5-Pin Preview Modal -->
+  <div class="modal-overlay" id="pinModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">Pinterest 5-Pin Suite Generator</span>
+          <h3 class="modal-title" id="modalProductTitle">Product Name</h3>
+        </div>
+        <button class="modal-close" id="modalCloseBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="pin-carousel" id="pinCarousel">
+          <!-- 5 Pins will be injected here -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <span class="footer-tip">💡 All pins include direct backlink to the Etsy listing with analytics tracking.</span>
+        <button class="btn btn-primary" id="modalPostBtn">🚀 Publish These 5 Pins</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Action completed!</div>
+
+  <script src="app.js"></script>
+</body>
+</html>

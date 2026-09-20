@@ -1,0 +1,36 @@
+{
+  "name": "veracaratjewels-scheduler",
+  "version": "1.0.0",
+  "description": "Automated scheduler to fetch product catalogs from Etsy and publish 5 Pinterest pins per product daily for Vera Carat Jewels",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "dashboard": "node src/server.js",
+    "start": "node src/index.js start",
+    "sync": "node src/index.js sync",
+    "sync:browser": "node src/index.js sync-browser",
+    "post:next": "node src/index.js post-next",
+    "post:dry-run": "node src/index.js post-next --dry-run",
+    "status": "node src/index.js status",
+    "test:pin": "node src/index.js test-pin --dry-run",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "etsy",
+    "pinterest",
+    "scheduler",
+    "automation",
+    "jewelry",
+    "marketing"
+  ],
+  "author": "Vera Carat Jewels",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "node-cron": "^3.0.3"
+  }
+}
